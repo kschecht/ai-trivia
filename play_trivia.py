@@ -4,10 +4,7 @@ import random
 
 ALL_PLAYERS = []
 REMAINING_PLAYERS = []
-TURN_INDEX = 0
-
-def get_players_input():
-    return 
+TURN_INDEX = 0 
 
 def get_players():
     print()
