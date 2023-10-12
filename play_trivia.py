@@ -2,9 +2,32 @@ import re
 import openai
 import random
 
-ALL_PLAYERS = []
-REMAINING_PLAYERS = []
-TURN_INDEX = 0 
+GRADE_NAMES = {
+    -1: "preschool",
+    0: "kindergarten",
+    1: "1st grade",
+    2: "2nd grade",
+    3: "3rd grade",
+    4: "4th grade",
+    5: "5th grade",
+    6: "6th grade",
+    7: "7th grade",
+    8: "8th grade",
+    9: "9th grade",
+    10: "10th grade",
+    11: "11th grade",
+    12: "12th grade",
+    13: "college freshman",
+    14: "college sophomore",
+    15: "college junior",
+    16: "college senior",
+    17: "master's degree"
+}
+
+with open("ai_secrets/ai_organization.txt", 'r') as org_file:
+    openai.organization = org_file.read()
+with open("ai_secrets/ai_secret_key.txt", 'r') as secret_file:
+    openai.api_key = secret_file.read()
 
 def get_players():
     print()
@@ -19,7 +42,7 @@ def get_players():
     return players
 
 def is_int(int_str):
-    return re.match('\d+', int_str)
+    return re.match('-?\d+', int_str)
 
 def get_number_of_grades():
     print()
@@ -49,40 +72,101 @@ def get_grades(num_grades):
             grades.append(grade_num + 6)
     return grades
 
-with open("ai_secrets/ai_organization.txt", 'r') as org_file:
-    openai.organization = org_file.read()
-with open("ai_secrets/ai_secret_key.txt", 'r') as secret_file:
-    openai.api_key = secret_file.read()
-
 def get_ai_response(content):
     return openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": content}]
     ).choices[0].message.content
 
-def get_category_player():
-    category_player_index = random.randrange(0,len(REMAINING_PLAYERS))
-    while REMAINING_PLAYERS[category_player_index] == ALL_PLAYERS[TURN_INDEX]:
-        category_player_index = random.randrange(0,len(REMAINING_PLAYERS))
+def get_random_player_index():
+    return random.randrange(0,len(REMAINING_PLAYERS))
+
+def did_someone_win(num_grades):
+    found_winner = False
+    score_strs = []
+    for player in PLAYERS_SCORES:
+        score = PLAYERS_SCORES[player]
+        score_strs.append(f"{player}:{score}")
+        if not found_winner and score >= num_grades:
+            print(f"Congrats {player}! You've won this game of AI trivia!!!")
+            print(get_ai_response(f"{player} just won a trivia competition! Please give them a compliment about how much smarter they are than everybody else."))
+            found_winner = True
+    if found_winner:
+        print(f"Here are the final scores!")
+        print(score_strs)
+    return found_winner
+
+def get_category_player(turn_index):
+    global REMAINING_PLAYERS
+    global ALL_PLAYERS
+    if len(REMAINING_PLAYERS) == 1 and REMAINING_PLAYERS[0] == ALL_PLAYERS[turn_index]:
+        REMAINING_PLAYERS = []
+    if len(REMAINING_PLAYERS) <= 0:
+        for player in ALL_PLAYERS:
+            REMAINING_PLAYERS.append(player)
+    category_player_index = get_random_player_index()
+    while REMAINING_PLAYERS[category_player_index] == ALL_PLAYERS[turn_index]:
+        category_player_index = get_random_player_index()
     category_player = REMAINING_PLAYERS[category_player_index]
     REMAINING_PLAYERS.remove(category_player)
     return category_player
 
-def turn():
-    answering_player = ALL_PLAYERS[TURN_INDEX]
-    print(f"It's now {answering_player}'s turn!")
-    print(f"{get_category_player()}: Pick a topic for ")
+def get_grade_for_player(player):
+    grade_index = PLAYERS_SCORES[player]
+    grade = GRADES[grade_index]
+    if grade < -1:
+        grade = -1
+    if grade > 17:
+        grade = 17
+    return GRADE_NAMES[grade]
+
+def turns(num_grades):
+    turn_index = 0
+    while not did_someone_win(num_grades):
+        print()
+        answering_player = ALL_PLAYERS[turn_index]
+        print(f"It's now {answering_player}'s turn!")
+        grade_name = get_grade_for_player(answering_player)
+        topic = input(f"{get_category_player(turn_index)}: Pick a topic for a {grade_name} level question for {answering_player}! ")
+        print()
+        question = get_ai_response(f"Write a {grade_name} level question about {topic}.")
+        print()
+        user_answer = input(f"{answering_player}, please answer the following question: {question} ")
+        print()
+        ai_answer = get_ai_response(f'The question is: "{question}". Is the correct answer {user_answer}? Please make the first word of your response "Yes" if this is the correct answer, or "No" if this is not the correct answer, and make sure to explain what the correct answer was if the provided answer was incorrect. If the question was subjective, count any answer as correct.')
+        print(ai_answer)
+        print()
+        if ai_answer[0] == "Y":
+            PLAYERS_SCORES[answering_player] = PLAYERS_SCORES[answering_player] + 1
+            print(f"{answering_player} gets a point! Your score is now {PLAYERS_SCORES[answering_player]}!")
+        else:
+            print(f"{answering_player} gets no points this round!")
+        print("Remember, for this game, the AI's answer is always the right answer! (Even if it's actually the wrong answer)")
+        turn_index = turn_index + 1
+        if turn_index >= len(ALL_PLAYERS):
+            turn_index = 0
+
 
 def main():
     print("Welcome to AI trivia! Where you decide the category, and AI comes up with the questions!")
+    global ALL_PLAYERS
     ALL_PLAYERS = get_players()
-    REMAINING_PLAYERS = ALL_PLAYERS
+    global REMAINING_PLAYERS
+    REMAINING_PLAYERS = []
+    for player in ALL_PLAYERS:
+        REMAINING_PLAYERS.append(player)
     num_grades = get_number_of_grades()
-    grades = get_grades(num_grades)
+    global GRADES
+    GRADES = get_grades(num_grades)
+    initial_score = 0
+    global PLAYERS_SCORES
+    PLAYERS_SCORES = {player:initial_score for player in ALL_PLAYERS}
+    print(PLAYERS_SCORES)
     print()
     print("All right! We're ready to play!")
     print(get_ai_response("Tell me a random fun motivational catchphrase for a trivia competition!"))
     print()
+    turns(num_grades)
 
     
 if __name__ == "__main__":
