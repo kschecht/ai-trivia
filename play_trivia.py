@@ -88,10 +88,12 @@ def did_someone_win(num_grades):
         score = PLAYERS_SCORES[player]
         score_strs.append(f"{player}:{score}")
         if not found_winner and score >= num_grades:
+            print()
             print(f"Congrats {player}! You've won this game of AI trivia!!!")
-            print(get_ai_response(f"{player} just won a trivia competition! Please give them a compliment about how much smarter they are than everybody else."))
+            print(get_ai_response(f"{player} just won a trivia competition! Please give them a compliment about how much smarter they are than everybody else. Also bestow upon them a made-up title awarded to them for this honor."))
             found_winner = True
     if found_winner:
+        print()
         print(f"Here are the final scores!")
         print(score_strs)
     return found_winner
