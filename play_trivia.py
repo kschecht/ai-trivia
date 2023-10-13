@@ -89,7 +89,7 @@ def did_someone_win(num_grades):
         score_strs.append(f"{player}:{score}")
         if not found_winner and score >= num_grades:
             print()
-            print(f"Congrats {player}! You've won this game of AI trivia!!!")
+            print(f"Congrats {player}! You've won this game of TrivAI Pursuit!!!")
             print(get_ai_response(f"{player} just won a trivia competition! Please give them a compliment about how much smarter they are than everybody else. Also bestow upon them a made-up title awarded to them for this honor."))
             found_winner = True
     if found_winner:
@@ -131,7 +131,7 @@ def turns(num_grades):
         grade_name = get_grade_for_player(answering_player)
         topic = input(f"{get_category_player(turn_index)}: Pick a topic for a {grade_name} level question for {answering_player}! ")
         print()
-        question = get_ai_response(f"Write a {grade_name} level question about {topic}.")
+        question = get_ai_response(f"Write a {grade_name} level question about {topic}. Please write a question with an answer that is not longer than one sentence. Do not write down the answer in your response. Do not make the answer the topic that was chosen.")
         print()
         user_answer = input(f"{answering_player}, please answer the following question: {question} ")
         print()
@@ -150,7 +150,7 @@ def turns(num_grades):
 
 
 def main():
-    print("Welcome to AI trivia! Where you decide the category, and AI comes up with the questions!")
+    print("Welcome to TrivAI Pursuit! Where you decide the category, and AI comes up with the questions!")
     global ALL_PLAYERS
     ALL_PLAYERS = get_players()
     global REMAINING_PLAYERS
@@ -163,7 +163,6 @@ def main():
     initial_score = 0
     global PLAYERS_SCORES
     PLAYERS_SCORES = {player:initial_score for player in ALL_PLAYERS}
-    print(PLAYERS_SCORES)
     print()
     print("All right! We're ready to play!")
     print(get_ai_response("Tell me a random fun motivational catchphrase for a trivia competition!"))
