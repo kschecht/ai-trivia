@@ -1,7 +1,6 @@
 import openai_chat as chat
 import random
 import re
-#import getpass
 
 
 GRADE_NAMES = {
@@ -63,11 +62,11 @@ def get_players():
 
 def get_number_of_grades():
     print()
-    num_grades = input("Enter the number of grades you'd like to complete. The winner will be the first player to answer one question correctly in each grade! If you choose not to enter a number, we'll select the default of 6 grades. ")
+    num_grades = input("Enter the number of grades you'd like to complete. The winner will be the first player to answer one question correctly in each grade! If you choose not to enter a number, we'll select the default of 3 grades. ")
     if is_int(num_grades):
         return int(num_grades)
     else:
-        return 6
+        return 3
 
 
 def get_grades():
@@ -79,8 +78,7 @@ def get_grades():
     print("13-16 = undergraduate freshman through senior")
     print(">16 = master's degree")
     print("Your grade number selections should ideally be in ascending order so that your questions will get more difficult as the game goes on!")
-    print("If you don't respond with a number, we'll pick one of the default grades (7, 8, 9, 10, 11, 12)")
-    print()
+    print("If you don't respond with a number, we'll pick one of the default grades (7, 8, 9, 10, 11, 12)\n")
     grades = []
     for grade_num in range(1, NUM_GRADES+1):
         grade = input(f"What grade level should Question {grade_num} be? ")
@@ -97,8 +95,7 @@ def is_int(int_str):
 
 def get_ai_personality():
     print()
-    personality = input(f"What traits do you want your AI host to have? ")
-    print()
+    personality = input(f"What traits do you want your AI host to have? \n")
     return personality
 
 
@@ -133,9 +130,8 @@ def did_someone_win(openai_manager):
             found_winner = True
     if found_winner:
         print()
-        print(f"Here are the final scores!")
-    print(score_strs)
-    print()
+        print("Here are the final scores!")
+    print(f"{score_strs}\n")
     return found_winner
 
 
@@ -169,19 +165,18 @@ def get_random_player_index():
     return random.randrange(0,len(REMAINING_PLAYERS))
 
 
+# The AI has a habit of writing questions where the answer is the topic, despite instructions otherwise.
+# This validation attempts to filter out these kinds of questions, but does not hold up the game if it is unable to do so.
 def get_valid_question(grade_name, topic):
     invalid = True
     question = openai_manager.chat_with_history(f"Question: Write a {grade_name} level question about {topic}.")
     count = 0
-    #print(question)
-    while invalid and count < 13:
+    while invalid and count < 6:
         answer_match = openai_manager.chat_with_history(f"The question is {question}. Please answer Yes or No: Is the following answer correct? {topic}")
-        #print(answer_match)
         if answer_match[0] == "N":
             invalid = False
         else:
             question = openai_manager.chat_with_history(f"Question: Please write a different {grade_name} level question about {topic} that has a different answer than your previous question.")
-            #print(question)
         count += 1
     return question
 
@@ -196,13 +191,11 @@ def turns(openai_manager):
         topic = input(f"{get_category_player(turn_index)}: Pick a topic for a {grade_name} level question for {answering_player}! ") #getpass.getpass(prompt=f"{get_category_player(turn_index)}: Pick a topic for a {grade_name} level question for {answering_player}! ")
         print()
         question = get_valid_question(grade_name, topic)
-        print(question)
-        print()
+        print(f"{question}\n")
         user_answer = input(f"{answering_player}, please answer the above question. ")
         print()
         ai_answer = openai_manager.chat_with_history(f'Answer: The question is: "{question}". Is the correct answer {user_answer}?')
-        print(ai_answer)
-        print()
+        print(f"{ai_answer}\n")
         if ai_answer[0] == "Y":
             PLAYERS_SCORES[answering_player] = PLAYERS_SCORES[answering_player] + 1
             print(f"{answering_player} gets a point! Your score is now {PLAYERS_SCORES[answering_player]}!")

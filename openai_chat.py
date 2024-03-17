@@ -1,6 +1,6 @@
+# Source: https://github.com/DougDougGithub/Babagaboosh/blob/main/openai_chat.py
 from openai import OpenAI
 import tiktoken
-import os
 from rich import print
 
 def num_tokens_from_messages(messages, model='gpt-3.5-turbo'):
@@ -52,7 +52,6 @@ class OpenAiManager:
 
         # Process the answer
         openai_answer = completion.choices[0].message.content
-        #print(f"[green]\n{openai_answer}\n")
         return openai_answer
 
     # Asks a question that includes the full conversation history
@@ -65,12 +64,9 @@ class OpenAiManager:
         self.chat_history.append({"role": "user", "content": prompt})
 
         # Check total token limit. Remove old messages as needed
-        #print(f"[coral]Chat History has a current token length of {num_tokens_from_messages(self.chat_history)}")
         while num_tokens_from_messages(self.chat_history) > 8000:
             self.chat_history.pop(1) # We skip the 1st message since it's the system message
-            #print(f"Popped a message! New token length is: {num_tokens_from_messages(self.chat_history)}")
 
-        #print("[yellow]\nAsking ChatGPT a question...")
         completion = self.client.chat.completions.create(
           model="gpt-3.5-turbo",
           messages=self.chat_history
@@ -81,23 +77,5 @@ class OpenAiManager:
 
         # Process the answer
         openai_answer = completion.choices[0].message.content
-        #print(f"[green]\n{openai_answer}\n")
         return openai_answer
-   
-
-# if __name__ == '__main__':
-#     openai_manager = OpenAiManager()
-
-#     # CHAT TEST
-#     chat_without_history = openai_manager.chat("Hey ChatGPT what is 2 + 2? But tell it to me as Yoda")
-
-#     # CHAT WITH HISTORY TEST
-#     FIRST_SYSTEM_MESSAGE = {"role": "system", "content": "Act like you are Captain Jack Sparrow from the Pirates of Carribean movie series!"}
-#     FIRST_USER_MESSAGE = {"role": "user", "content": "Ahoy there! Who are you, and what are you doing in these parts? Please give me a 1 sentence background on how you got here. And do you have any mayonnaise I can borrow?"}
-#     openai_manager.chat_history.append(FIRST_SYSTEM_MESSAGE)
-#     openai_manager.chat_history.append(FIRST_USER_MESSAGE)
-
-#     while True:
-#         new_prompt = input("\nNext question? \n\n")
-#         openai_manager.chat_with_history(new_prompt)
         
