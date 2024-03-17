@@ -46,7 +46,7 @@ Before playing, you'll be asked to set up your game with the following informati
     * `sleepy`
     * `secretly a cat`
     * `speaks in rhyme`
-    * `hates trivia`
+    * `scared of trivia`
 
 ### Turns
 Each player's turn will follow these steps:
